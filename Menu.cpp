@@ -8,6 +8,7 @@ using namespace std;
 
 #include "Newton.cpp"
 #include "Broyden.cpp"
+#include "SplineCubico.cpp"
 
 
 
@@ -54,7 +55,8 @@ int main() {
         cout << "========== MENU DE SELECCION ==========\n";
         cout << "1) Programa 1 (Broyden)\n";
         cout << "2) Programa 2 (Interpolacion Newton)\n";
-        cout << "3) Salir\n";
+        cout << "3) Programa 3 (Trazadores Cubicos)\n";
+        cout << "4) Salir\n";
         cout << "=======================================\n";
         cout << "Selecciona una opcion: ";
         cin >> opcion;
@@ -62,9 +64,9 @@ int main() {
         switch(opcion) {
             case 1: runBroyden(); pausa(); break;
             case 2: runNewton(); pausa(); break;
-            case 3: cout << "\nSaliendo...\n"; break;
+            case 3: runSpline(); pausa(); break;
             default: cout << "\nOpcion no valida.\n"; pausa();
         }
-    } while(opcion != 3);
+    } while(opcion != 4);
     return 0;
 }
