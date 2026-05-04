@@ -121,131 +121,149 @@ void runSpline() {
     do {
 
 
-    std::string filename = "datos.csv";
-    std::vector<Punto> puntos = leerCSV(filename);
-    size_t n = puntos.size() - 1; // n intervalos
+        std::string filename = "datos.csv";
+        std::vector<Punto> puntos = leerCSV(filename);
 
-    std::vector<double> h(n);
-    std::vector<double> f1(n);
-
-    // 1. Calculos iniciales: hi y diferencias divididas f_i^[1]
-    for (size_t i = 0; i < n; ++i) {
-        h[i] = puntos[i + 1].x - puntos[i].x;
-        f1[i] = (puntos[i + 1].y - puntos[i].y) / h[i];
-    }
-
-    // 2. Construccion del sistema tridiagonal para los nodos internos (1 a n-1)
-    size_t num_ecuaciones = n - 1;
-    std::vector<double> diag(num_ecuaciones);
-    std::vector<double> inf(num_ecuaciones - 1);
-    std::vector<double> sup(num_ecuaciones - 1);
-    std::vector<double> rhs(num_ecuaciones);
-
-    for (size_t i = 1; i <= num_ecuaciones; ++i) {
-        diag[i - 1] = 2.0 * (h[i - 1] + h[i]);
-        rhs[i - 1] = 6.0 * (f1[i] - f1[i - 1]);
-        
-        if (i < num_ecuaciones) {
-            sup[i - 1] = h[i];
-            inf[i - 1] = h[i];
+        //Datos obtenidos del CSV
+        // --- MOSTRAR DATOS LEÍDOS DEL CSV ---
+        std::cout << "\n--- DATOS CARGADOS DESDE EL ARCHIVO ---" << std::endl;
+        std::cout << std::left << std::setw(5) << "i" 
+                << std::setw(12) << "x[i]" 
+                << std::setw(12) << "f(x)[i]" << std::endl;
+        std::cout << "---------------------------------------" << std::endl;
+        for (size_t i = 0; i < puntos.size(); ++i) {
+            std::cout << std::left << std::setw(5) << i 
+                    << std::setw(12) << puntos[i].x 
+                    << std::setw(12) << puntos[i].y << std::endl;
         }
-    }
-
-    // 3. Solucion del sistema usando Thomas
-    std::vector<double> S_internos = resolverTridiagonal(inf, diag, sup, rhs);
-
-    // 4. Aplicar condiciones de frontera del Spline Natural (S_0 = 0, S_n = 0)
-    std::vector<double> S(n + 1, 0.0);
-    for (size_t i = 1; i < n; ++i) {
-        S[i] = S_internos[i - 1];
-    }
-
-    /* REPETIDO
-    std::cout << "--- VECTOR DE CURVATURAS (Si) ---" << std::endl;
-    for (size_t i = 0; i <= n; ++i) {
-        std::cout << "S[" << i << "] = " << S[i] << std::endl;
-    }
-    std::cout << "---------------------------------\n" << std::endl;
-    */
-
-
-
-    // --- MOSTRAR EL SISTEMA PARA OBTENER Si ---
-    std::cout << "\n=========================================================" << std::endl;
-    std::cout << "--- SISTEMA RESUELTO PARA CURVATURAS (Si) ---" << std::endl;
-    for (size_t i = 0; i <= n; ++i) {
-        std::cout << "S[" << i << "] = " << std::fixed << std::setprecision(6) << S[i] << std::endl;
-    }
-    std::cout << "=========================================================\n" << std::endl;
+        std::cout << "---------------------------------------\n" << std::endl;
 
 
 
 
+        size_t n = puntos.size() - 1; // n intervalos
+
+        std::vector<double> h(n);
+        std::vector<double> f1(n);
+
+        // 1. Calculos iniciales: hi y diferencias divididas f_i^[1]
+        for (size_t i = 0; i < n; ++i) {
+            h[i] = puntos[i + 1].x - puntos[i].x;
+            f1[i] = (puntos[i + 1].y - puntos[i].y) / h[i];
+        }
+
+        // 2. Construccion del sistema tridiagonal para los nodos internos (1 a n-1)
+        size_t num_ecuaciones = n - 1;
+        std::vector<double> diag(num_ecuaciones);
+        std::vector<double> inf(num_ecuaciones - 1);
+        std::vector<double> sup(num_ecuaciones - 1);
+        std::vector<double> rhs(num_ecuaciones);
+
+        for (size_t i = 1; i <= num_ecuaciones; ++i) {
+            diag[i - 1] = 2.0 * (h[i - 1] + h[i]);
+            rhs[i - 1] = 6.0 * (f1[i] - f1[i - 1]);
+            
+            if (i < num_ecuaciones) {
+                sup[i - 1] = h[i];
+                inf[i - 1] = h[i];
+            }
+        }
+
+        // 3. Solucion del sistema usando Thomas
+        std::vector<double> S_internos = resolverTridiagonal(inf, diag, sup, rhs);
+
+        // 4. Aplicar condiciones de frontera del Spline Natural (S_0 = 0, S_n = 0)
+        std::vector<double> S(n + 1, 0.0);
+        for (size_t i = 1; i < n; ++i) {
+            S[i] = S_internos[i - 1];
+        }
+
+        /* REPETIDO
+        std::cout << "--- VECTOR DE CURVATURAS (Si) ---" << std::endl;
+        for (size_t i = 0; i <= n; ++i) {
+            std::cout << "S[" << i << "] = " << S[i] << std::endl;
+        }
+        std::cout << "---------------------------------\n" << std::endl;
+        */
 
 
 
-    // 5. Calculo de coeficientes para los polinomios
-    std::vector<Coeficientes> polinomios(n);
-    std::cout << "--- ECUACIONES DE LOS POLINOMIOS ---" << std::endl;
-    
-
-
-    // --- PRESENTAR TABLA CON Si, ai, bi, ci, di ---
-    std::cout << "----------------------- TABLA DE RESULTADOS -----------------------" << std::endl;
-    std::cout << std::left << std::setw(5) << "i" 
-              << std::setw(12) << "Si" 
-              << std::setw(12) << "ai" 
-              << std::setw(12) << "bi" 
-              << std::setw(12) << "ci" 
-              << std::setw(12) << "di" << std::endl;
-    std::cout << "-------------------------------------------------------------------" << std::endl;
-    for (size_t i = 0; i < n; ++i) {
-        polinomios[i].a = (S[i + 1] - S[i]) / (6.0 * h[i]);
-        polinomios[i].b = S[i] / 2.0;
-        polinomios[i].c = f1[i] - ((S[i + 1] + 2.0 * S[i]) / 6.0) * h[i];
-        polinomios[i].d = puntos[i].y;
-
-        std::cout << std::left << std::setw(5) << i 
-                  << std::setw(12) << S[i] 
-                  << std::setw(12) << polinomios[i].a 
-                  << std::setw(12) << polinomios[i].b 
-                  << std::setw(12) << polinomios[i].c 
-                  << std::setw(12) << polinomios[i].d << std::endl;
-    }
-    std::cout << "-------------------------------------------------------------------\n" << std::endl;
+        // --- MOSTRAR EL SISTEMA PARA OBTENER Si ---
+        std::cout << "\n=========================================================" << std::endl;
+        std::cout << "--- SISTEMA RESUELTO PARA CURVATURAS (Si) ---" << std::endl;
+        for (size_t i = 0; i <= n; ++i) {
+            std::cout << "S[" << i << "] = " << std::fixed << std::setprecision(6) << S[i] << std::endl;
+        }
+        std::cout << "=========================================================\n" << std::endl;
 
 
 
 
 
 
-    // --- PRESENTAR Polinomios ---
-    std::cout << "----------------------- Polinomios Calculados -----------------------" << std::endl;
-    for (size_t i = 0; i < n; ++i) {
-        polinomios[i].a = (S[i + 1] - S[i]) / (6.0 * h[i]);
-        polinomios[i].b = S[i] / 2.0;
-        polinomios[i].c = f1[i] - ((S[i + 1] + 2.0 * S[i]) / 6.0) * h[i];
-        polinomios[i].d = puntos[i].y;
 
-        std::cout << "g_" << i << "(x) = ";
-        std::cout << std::fixed << std::setprecision(4);
-        std::cout << polinomios[i].a << "(x - " << puntos[i].x << ")^3 + "
-                  << polinomios[i].b << "(x - " << puntos[i].x << ")^2 + "
-                  << polinomios[i].c << "(x - " << puntos[i].x << ") + "
-                  << polinomios[i].d << std::endl;
-    }
-    std::cout << "-------------------------------------------------------------------" << std::endl;
+        // 5. Calculo de coeficientes para los polinomios
+        std::vector<Coeficientes> polinomios(n);
+        std::cout << "--- ECUACIONES DE LOS POLINOMIOS ---" << std::endl;
+        
 
 
+        // --- PRESENTAR TABLA CON Si, ai, bi, ci, di ---
+        std::cout << "----------------------- TABLA DE RESULTADOS -----------------------" << std::endl;
+        std::cout << std::left << std::setw(5) << "i" 
+                << std::setw(12) << "Si" 
+                << std::setw(12) << "ai" 
+                << std::setw(12) << "bi" 
+                << std::setw(12) << "ci" 
+                << std::setw(12) << "di" << std::endl;
+        std::cout << "-------------------------------------------------------------------" << std::endl;
+        for (size_t i = 0; i < n; ++i) {
+            polinomios[i].a = (S[i + 1] - S[i]) / (6.0 * h[i]);
+            polinomios[i].b = S[i] / 2.0;
+            polinomios[i].c = f1[i] - ((S[i + 1] + 2.0 * S[i]) / 6.0) * h[i];
+            polinomios[i].d = puntos[i].y;
 
-    // 6. Generar script en Python
-    generarScriptGrafica(puntos, polinomios);
+            std::cout << std::left << std::setw(5) << i 
+                    << std::setw(12) << S[i] 
+                    << std::setw(12) << polinomios[i].a 
+                    << std::setw(12) << polinomios[i].b 
+                    << std::setw(12) << polinomios[i].c 
+                    << std::setw(12) << polinomios[i].d << std::endl;
+        }
+        std::cout << "-------------------------------------------------------------------\n" << std::endl;
 
 
 
-    
 
-    // 7. Preguntar si desea realizar otro ajuste
+
+
+        // --- PRESENTAR Polinomios ---
+        std::cout << "----------------------- Polinomios Calculados -----------------------" << std::endl;
+        for (size_t i = 0; i < n; ++i) {
+            polinomios[i].a = (S[i + 1] - S[i]) / (6.0 * h[i]);
+            polinomios[i].b = S[i] / 2.0;
+            polinomios[i].c = f1[i] - ((S[i + 1] + 2.0 * S[i]) / 6.0) * h[i];
+            polinomios[i].d = puntos[i].y;
+
+            std::cout << "g_" << i << "(x) = ";
+            std::cout << std::fixed << std::setprecision(4);
+            std::cout << polinomios[i].a << "(x - " << puntos[i].x << ")^3 + "
+                    << polinomios[i].b << "(x - " << puntos[i].x << ")^2 + "
+                    << polinomios[i].c << "(x - " << puntos[i].x << ") + "
+                    << polinomios[i].d << std::endl;
+        }
+        std::cout << "-------------------------------------------------------------------" << std::endl;
+
+
+
+        // 6. Generar script en Python
+        generarScriptGrafica(puntos, polinomios);
+
+
+
+        
+
+        // 7. Preguntar si desea realizar otro ajuste
         std::cout << "\x1B[33m" << "¿Desea realizar otro ajuste con otra tabla de valores? (s/n): " << "\x1B[0m";
         std::cin >> continuar;
 
