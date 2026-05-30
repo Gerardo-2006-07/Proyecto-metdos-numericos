@@ -65,6 +65,7 @@ int main() {
             case 1: runBroyden(); pausa(); break;
             case 2: runNewton(); pausa(); break;
             case 3: runSpline(); pausa(); break;
+            case 4: cout << "\nSaliendo del programa...\n"; break;
             default: cout << "\nOpcion no valida.\n"; pausa();
         }
     } while(opcion != 4);
