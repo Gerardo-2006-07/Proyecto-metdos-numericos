@@ -9,6 +9,7 @@ using namespace std;
 #include "Newton.cpp"
 #include "Broyden.cpp"
 #include "SplineCubico.cpp"
+#include "Romberg.cpp"
 
 
 
@@ -53,21 +54,37 @@ int main() {
     do {
         limpiar();
         cout << "========== MENU DE SELECCION ==========\n";
-        cout << "1) Programa 1 (Broyden)\n";
-        cout << "2) Programa 2 (Interpolacion Newton)\n";
-        cout << "3) Programa 3 (Trazadores Cubicos)\n";
-        cout << "4) Salir\n";
+        cout << "A) Sistemas de ecuaciones no lineales (Broyden).\n";
+        cout << "\t1) Programa 1 (Broyden)\n";
+        cout << "B) Interpolación y ajuste de curvas.\n";
+        cout << "\t2) Programa 2 (Interpolacion Newton)\n";
+        cout << "\t3) Programa 3 (Trazadores Cubicos)\n";
+        cout << "C) Integración (datos equidistantes)\n";
+        cout << "\t4) Programa 4 (Romberg)\n";
+        cout << "5) Salir\n";
         cout << "=======================================\n";
         cout << "Selecciona una opcion: ";
-        cin >> opcion;
+        //cin >> opcion;
+
+        if (!(cin >> opcion) || opcion < 1 || opcion > 5) {
+            cout << "\nError: Debes ingresar un numero en el rango indicado.\n";
+
+            cin.clear(); // Limpia el estado de error
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Descarta la entrada incorrecta
+
+            pausa();
+            continue;
+        }
+     
 
         switch(opcion) {
             case 1: runBroyden(); pausa(); break;
             case 2: runNewton(); pausa(); break;
             case 3: runSpline(); pausa(); break;
-            case 4: cout << "\nSaliendo del programa...\n"; break;
+            case 4: runRomberg(); pausa(); break;
+            case 5: cout << "\nSaliendo del programa...\n"; break;
             default: cout << "\nOpcion no valida.\n"; pausa();
         }
-    } while(opcion != 4);
+    } while(opcion != 5);
     return 0;
 }
